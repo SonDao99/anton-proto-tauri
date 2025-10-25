@@ -1,0 +1,71 @@
+Ward Round Note (Day 1)
+
+Document Type: Ward Round Note 
+Document Date: 10 Oct, 2025 09:50 AEDT 
+Document Status: Auth (Verified)
+Document Title/Subject: GenMed WR
+Performed By/Author: Tester, Anton on 10 Oct, 2025 10:00 AEDT 
+Verified By: Tester, Anton on 10 Oct, 2025 10:00 AEDT
+Visit info: 2123123, TEST HOSPITAL, Inpatient, 18/09/2025 - 11/10/2025
+
+*FINAL REPORT*
+
+General Medicine – Ward Round Note
+
+Staff present:
+Registrar – John Smith
+Resident – Sarah Lee
+Intern – Anton Tester
+
+Issues
+# Post R) revision THR 
+-	Initial R) THR 10 years ago and ORIF of R) hip 5 years ago
+-	This time: admitted under Orthopaedics team for investigation of R) hip pain post fall at home, found with periprosthetic fracture ad femoral loosening. Underwent Revision THR on 20/09.
+-	Post-op Abx course of Cefazolin + completed course of oral tail
+-	WBAT (as per ortho)
+-	T/f GenMed 1/10 for mx of post-op hypernatremia and delirium, and ongoing rehabilitation 
+# Osteoporosis 
+-	No prior dx osteoporosis or osteoporosis workup
+-	Consider IV zolendronic acid vs oral alendronate as management, closer to discharge
+# Delirium
+-	As per NOK – has notified gradual cognitive decline over last 6/12, short term memory loss, more forgetful of where items are placed
+-	Delirious post-op – code grey 23/09 for agitation, risperidone not given as per NOK’s request 
+-	Resolving
+# Constipation
+-	Presented with mixed abdominal pain – pmhx bowel obstruction
+-	Xray 28/10- significant fecal loading in colon and rectum. Associated with overflow diarrhea.
+-	Refusing aperients due to taste
+# Hypernatremia
+-	Found hypernatremic Na 149 post-op – likely in setting of dehydration
+-	Resolving after IV hydration
+# Hypertension
+-	On regular 5mg amlodipine -> increased to 10mg this admission, and perindopril commenced, in setting of persistently high SBP > 170, BP well controlled thereafter
+
+Progress 
+Slept well overnight
+E+D well
+Bowels not opened for 3 days – however has been refusing aperients as pt doesn’t like the taste and doesn’t think it helps. We have encouraged her to take her aperients, and she is agreeable.
+Mild abdominal pain
+Hip pain – has been improving since surgery, however 
+SBP 143/73 today 
+No significant concerns overnight
+Engaging well with physiotherapy – has been participating in exercise program, with leg mobility improving gradually 
+Mixed continence
+ 
+Examination 
+Sitting up on bed, looking alert and comfortable
+Orientated to time, place and person today 
+4AT score 0
+Abdomen soft but mildly tender generally
+No peripheral edema
+Noted mild bibasal crepitations – possibly in setting of longstanding mild heart failure
+Obs: Temp 37, HR 78, RR: 18, BP 137/80: SpO2 98%
+ 
+ 
+Impression and Plan 
+Ongoing physiotherapy to progress mobility
+Consider cognitive assessment closer to discharge
+To commence osteoporosis treatment prior to discharge
+Encourage patient to use laxatives.
+Monitor for any signs of fever – please escalate to HT if any concerns overnight
+Monitor BSLs (in setting of T2DM)

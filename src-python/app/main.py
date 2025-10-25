@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_openai import ChatOpenAI
 from langgraph.graph import START, MessagesState, StateGraph
@@ -11,6 +11,23 @@ import sys
 from queue import Queue
 import threading
 import asyncio
+from services.llm.open_router_client import OpenRouterClient
+from agents.medical_agent import MedicalAgent
+from services.note_formatters import NoteFormatterFactory
+from services.citations.citation_extractor import CitationExtractor
+from models.note_types import NoteType
+from urllib.parse import urlparse, parse_qs
+from pathlib import Path
+from services.streams.connection_manager import ConnectionManager
+from pydantic import BaseModel
+import re
+from textwrap import dedent
+import logging
+
+logger = logging.getLogger(__name__)
+
+BASE_DIR = Path(__file__).resolve().parent  # e.g., src-python/app
+MEDICAL_FILES_DIR = (BASE_DIR / "tmp" / "medical_files").resolve()
 
 load_dotenv()
 
@@ -23,117 +40,151 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
-    ], 
+        "http://localhost:1420",
+        "http://127.0.0.1:1420",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Setup LangGraph workflow
-workflow = StateGraph(state_schema=MessagesState)
+# Simple health endpoint so the frontend can poll for readiness before opening a WebSocket.
+# Frontend should poll GET /health and wait for a 200 { "status": "ok" } response.
+@app.get("/health")
+async def health():
+    """
+    Sidecar readiness probe used by the frontend to avoid WebSocket race conditions.
+    """
+    return {"status": "ok"}
 
-model = ChatOpenAI(
-    model=os.getenv('OPENROUTER_MODEL', 'meta-llama/llama-3.1-8b-instruct:free'),
-    base_url='https://openrouter.ai/api/v1',
-    api_key=os.getenv('OPENROUTER_API_KEY'),
-    temperature=0.7,
-)
+# Initialize shared components
+llm_client = OpenRouterClient()
+medical_agent = MedicalAgent()
+citation_extractor = CitationExtractor()
 
-def call_model(state: MessagesState):
-    response = model.invoke(state['messages'])
-    return {'messages': response}
+class TriggerStreamRequest(BaseModel):
+    threadId: str
+    docType: str = "ward_round"
+    noteOptions: dict = {}
 
-workflow.add_node('model', call_model)
-workflow.add_edge(START, 'model')
+PATCH_RE = re.compile(r"<PATCH>\s*``````\s*</PATCH>", re.IGNORECASE)
+MARKDOWN_RE = re.compile(r"<MARKDOWN>\s*``````\s*</MARKDOWN>", re.IGNORECASE)
+OUTPUT_SPEC = dedent("""
+Output format:
+<PATCH>
 
-memory = MemorySaver()
-graph_app = workflow.compile(checkpointer=memory)
+{
+"issues": [
+{
+"title": "...",
+"fields": [
+{ "name": "History/Notes", "op": "append|replace", "bullets": ["..."] },
+{ "name": "Management", "op": "append|replace", "bullets": ["..."] },
+{ "name": "Status", "op": "append|replace", "bullets": ["..."] },
+{ "name": "Since last review", "op": "append|replace", "bullets": ["..."] }
+]
+}
+],
+"citations": { "Progress": ["[cite:...]"] }
+}
 
-@app.websocket("/ws/{thread_id}")
-async def websocket_endpoint(websocket: WebSocket, thread_id: str):
-    await websocket.accept()
-    print(f"WebSocket connected: {thread_id}")
-    
+text
+</PATCH>
+
+<MARKDOWN>""")
+
+
+async def stream_note_to_ws(thread_id: str, doc_type: str, note_options: dict):
+    websocket = await manager.get_socket(thread_id)
+    if not websocket:
+        return
     try:
-        while True:
-            data = await websocket.receive_text()
-            message_data = json.loads(data)
-            print(f"Received message: {message_data['message']}")
-            
-            config = {'configurable': {'thread_id': thread_id}}
-            queue = Queue()
-            
-            def run_stream():
-                try:
-                    print("[LG] Starting stream...")
-                    last_message_content = ""
-                    
-                    for event in graph_app.stream(
-                        {'messages': [HumanMessage(content=message_data['message'])]},
-                        config,
-                        stream_mode='values',  # Changed from 'messages'
-                    ):
-                        # Get the last message in the state
-                        messages = event.get('messages', [])
-                        if messages:
-                            last_msg = messages[-1]
-                            
-                            # Check if it's an assistant message
-                            if hasattr(last_msg, 'content') and type(last_msg).__name__ in ['AIMessage', 'AIMessageChunk']:
-                                content = last_msg.content
-                                
-                                # Send only the delta
-                                if content and len(content) > len(last_message_content):
-                                    delta = content[len(last_message_content):]
-                                    print(f"[LG] Sending delta: '{delta[:50]}...'")
-                                    queue.put(('chunk', delta))
-                                    last_message_content = content
-                    
-                    print("[LG] Stream complete")
-                    queue.put(('done', None))
-                except Exception as e:
-                    print(f"[LG] ERROR: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    queue.put(('error', str(e)))
+        # Build prompts
+        note_type = NoteType(doc_type)
+        formatter = NoteFormatterFactory.create(note_type)
+        medical_dir = Path(os.getenv("MEDICAL_FILES_DIR", str(MEDICAL_FILES_DIR)))
+        logger.info(f"Using medical files dir: {medical_dir}")
+        medical_content = medical_agent.read_medical_files(medical_dir)
+        system_prompt = formatter.get_system_prompt()
+        user_message = formatter.format_user_message(
+            medical_content,
+            note_options.get("instruction", f"Generate {note_type.value} note"),
+        )
+        messages = medical_agent.build_messages(system_prompt, user_message)
 
-            
-            # Start streaming in background thread
-            threading.Thread(target=run_stream, daemon=True).start()
-            
-            # Send chunks as they arrive
-            stream_active = True
-            while stream_active:
-                await asyncio.sleep(0.01)
-                
-                while not queue.empty():
-                    msg_type, content = queue.get()
-                    
-                    if msg_type == 'chunk':
-                        await websocket.send_text(json.dumps({
-                            'content': content,
-                            'type': 'chunk'
-                        }))
-                    elif msg_type == 'done':
-                        print("Sending done signal")
-                        await websocket.send_text(json.dumps({'type': 'done'}))
-                        stream_active = False
-                        break
-                    elif msg_type == 'error':
-                        print(f"Sending error: {content}")
-                        await websocket.send_text(json.dumps({
-                            'type': 'error',
-                            'content': content
-                        }))
-                        stream_active = False
-                        break
-                    
-    except WebSocketDisconnect:
-        print(f"WebSocket disconnected: {thread_id}")
+        # Stream deltas to client
+        accumulated = ""
+        config = {"temperature": 0.3, "model": os.getenv("OPENROUTER_MODEL")}
+        for delta in llm_client.stream_chat(messages, config):
+            accumulated += delta
+            await websocket.send_text(
+                json.dumps({"type": "chunk", "content": delta})
+            )
+
+        # Extract citation data (no HTML conversion)
+        citation_map = citation_extractor.extract_citations(
+            accumulated,
+            medical_content
+        )
+
+        # Send structured data to frontend
+        await websocket.send_text(json.dumps({
+            "type": "note_complete",
+            "data": {
+                "markdown": accumulated,
+                "citations": {
+                    str(num): {
+                        "id": cite.id,
+                        "number": cite.number,
+                        "filename": cite.filename,
+                        "section": cite.section,
+                        "timestamp": cite.timestamp.isoformat() if cite.timestamp else None,
+                        "content": cite.content,
+                        "context": cite.context
+                    }
+                    for num, cite in citation_map.citations.items()
+                },
+                "citation_count": citation_map.total_count
+            }
+        }))
+
+        logger.info(f"Sent note_complete with {citation_map.total_count} citations")
+        await websocket.send_text(json.dumps({"type": "done"}))
+
     except Exception as e:
-        print(f"WebSocket error: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error in stream_note_to_ws: {e}", exc_info=True)
+        try:
+            await websocket.send_text(json.dumps({"type": "error", "content": str(e)}))
+        except Exception:
+            pass
+
+@app.post("/api/notes/trigger-stream", status_code=status.HTTP_202_ACCEPTED)
+async def trigger_stream(req: TriggerStreamRequest):
+    ws = await manager.get_socket(req.threadId)
+    if not ws:
+        raise HTTPException(status_code=404, detail="WebSocket not connected for threadId")
+    # Launch streaming task tied to this threadId
+    await manager.start_stream_task(
+        req.threadId,
+        stream_note_to_ws(req.threadId, req.docType, req.noteOptions),
+    )
+    return {"status": "started", "threadId": req.threadId}
+
+manager = ConnectionManager()
+
+@app.websocket("/ws/medical-note/{thread_id}")
+async def medical_note_ws(websocket: WebSocket, thread_id: str):
+    await websocket.accept()
+    await manager.connect(thread_id, websocket)
+    try:
+        # Keep the socket alive; optional: read control messages if needed
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        await manager.disconnect(thread_id)
+    except Exception:
+        await manager.disconnect(thread_id)
+
 
 if __name__ == "__main__":
     port = 8000

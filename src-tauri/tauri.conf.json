@@ -13,9 +13,8 @@
     "windows": [
       {
         "title": "anton-proto-tauri",
-        "width": 800,
-        "height": 600,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "maximized": true
       }
     ],
     "security": {

@@ -1,5 +1,9 @@
 @import "tailwindcss";
+
+/* @plugin "tailwind-scrollbar-hide"; */
 @import "tw-animate-css";
+
+/* @custom-variant dark (&:is(.dark *)); */
 
 /* @custom-variant dark (&:is(.dark *)); */
 
@@ -53,16 +57,6 @@
   --highlight: oklch(0.852 0.199 91.936);
 }
 
-::selection {
-  background-color: oklch(0.623 0.214 259.815); /* your --brand color */
-  color: white;
-}
-
-::-moz-selection {
-  background-color: oklch(0.623 0.214 259.815);
-  color: white;
-}
-
 
 /* .container {
   margin: 0;
@@ -72,7 +66,6 @@
   justify-content: center;
   text-align: center;
 } */
-
 
 /* .row {
   display: flex;
@@ -232,3 +225,44 @@ button {
     @apply bg-background text-foreground;
   }
 } */
+
+/* .dark {
+  --highlight: oklch(0.852 0.199 91.936);
+} */
+
+/* @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+/* .dark {
+  --highlight: oklch(0.852 0.199 91.936);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} */
+
+/* Fix: ensure editor caret has a sensible fallback inside Tauri WebView */
+:root {
+  --primary-fallback: #0f0f0f;
+}
+
+/* Target editor containers (some classnames include a slash; use attribute selector) */
+[class*="group/editor"] {
+  caret-color: var(--color-primary, var(--primary-fallback)) !important;
+}
+
+/* Ensure editable area inherits the caret color */
+[class*="group/editor"] [contenteditable="true"] {
+  caret-color: inherit;
+}

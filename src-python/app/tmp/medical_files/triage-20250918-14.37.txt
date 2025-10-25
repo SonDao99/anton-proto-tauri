@@ -1,0 +1,24 @@
+Triage
+Document Type: Triage
+Document Date: 18 Sep, 2025 14:37 AEDT 
+Document Status: Auth (Verified)
+Document Title/Subject: Triage TEST HOSPITAL
+Performed By/Author: Tester, Anton on 18 Sep, 2025 14:37 EDT 
+Verified By: Tester, Anton on 18 Sep, 2025 14:37 AEDT
+Visit info: 2123123, TEST HOSPITAL, Inpatient, 18/09/2025 - 11/10/2025
+
+Triage
+Visit Reason: Abdominal Pain
+Tracking Acuity: CAT 3 – Urgent
+Triage Presenting Information: Constipation, generalised abdominal pain, nausea, nil vomiting. Hx bowel obstruction, simliar pain/presentation. 1/52 left hip pain, instability, afebrile. pmhx L) THR. From indep living. AV – 25mcg fentanyl & 4mg ondans.
+Triage Date/Time: 10/10/2025
+
+Temp AV: 37
+Pulse rate AV: 70	
+Resp rate AV: 20
+Systolic Blood Pressure AV: 150
+SpO2 AV: 92
+BGL AV: 8.6 mmol/L
+Change in Behaviour/Thinking: No
+
+Allergies: Targin, Cephalosporins

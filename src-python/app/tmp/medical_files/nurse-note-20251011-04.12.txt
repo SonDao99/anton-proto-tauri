@@ -1,0 +1,22 @@
+Nursing Note (Day 1 Overnight)
+Document Type: Nursing Progress Note
+Document Date: 11 Oct, 2025, 04:12 AEDT
+Document Status: Auth (Verified)
+Document Title/Subject: Nursing Progress Note
+Performed By/Author: Doe, Jane on 11 Oct, 2025 05:26 AEDT
+Verified By/Author: Doe, Jane on 11 Oct, 2025 05:29 AEDT
+Visit info: 2123123, TEST HOSPITAL, Inpatient, 18/09/2025 - 11/10/2025
+
+*FINAL REPORT*
+
+
+Pt less coherent tonight, GCS13-14, was settled earlier tnight 
+Rang for pan x 2 
+Continent of urine
+Bowels still not opened
+Pad wet x 1
+Ongoing cough from PM – not settled despite hydration
+Vitals signs with normal limits, temp 37.1
+BGLs 13 @ 2am
+Sleeping intermittently overnight
+On low bed 
