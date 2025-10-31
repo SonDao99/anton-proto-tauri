@@ -28,7 +28,9 @@ jobs:
             libwebkit2gtk-4.1-dev \
             libappindicator3-dev \
             librsvg2-dev \
-            patchelf
+            patchelf \
+            jq \
+            gh
 
       - name: Install frontend deps
         run: npm ci
@@ -69,3 +71,16 @@ jobs:
           args: --config src-tauri/tauri.linux.json
           releaseDraft: true
           prerelease: false
+
+      - name: Make stable-named AppImage copy
+        run: |
+          APPIMAGE="$(ls src-tauri/target/release/bundle/appimage/*.AppImage | head -n1)"
+          cp "$APPIMAGE" "src-tauri/target/release/bundle/appimage/antonai-linux-x86_64.AppImage"
+
+      - name: Upload stable-named asset to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            src-tauri/target/release/bundle/appimage/antonai-linux-x86_64.AppImage \
+            --clobber
