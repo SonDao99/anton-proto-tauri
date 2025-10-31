@@ -33,7 +33,6 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
-      # Build the Python sidecar natively on Linux
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -49,7 +48,6 @@ jobs:
           mkdir -p ../src-tauri/binaries
           cp dist/main ../src-tauri/binaries/main
 
-      # Rename sidecar to include the Rust target triple
       - name: Rename sidecar with target triple
         working-directory: src-tauri
         run: |
@@ -57,10 +55,10 @@ jobs:
           mv "binaries/main" "binaries/main-${triple}"
           chmod +x "binaries/main-${triple}"
 
-      # Create a Linux-specific config overlay to avoid Windows-only beforeBuildCommand
+      # Override beforeBuildCommand to skip TS checks in CI (Vite only)
       - name: Create Tauri Linux config overlay
         run: |
-          jq '.build.beforeBuildCommand="npm run build"' src-tauri/tauri.conf.json > src-tauri/tauri.linux.json
+          jq '.build.beforeBuildCommand="vite build"' src-tauri/tauri.conf.json > src-tauri/tauri.linux.json
 
       - name: Build and publish (AppImage)
         uses: tauri-apps/tauri-action@v0
