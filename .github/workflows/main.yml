@@ -33,7 +33,7 @@ jobs:
           # webkitgtk 4.1 is for Tauri v2; 4.0 is for Tauri v1.
 
       - name: install frontend dependencies
-        run: yarn install # or: npm ci / pnpm i --frozen-lockfile / bun install
+        run: npm ci
 
       - name: build and publish
         uses: tauri-apps/tauri-action@v0
