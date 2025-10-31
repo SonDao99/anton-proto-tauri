@@ -1,9 +1,17 @@
 name: release-linux
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag"
+        required: true
+        type: string
   push:
     tags:
       - v*
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
 jobs:
   publish-tauri-linux:
@@ -69,8 +77,17 @@ jobs:
         with:
           tauriScript: npx tauri
           args: --config src-tauri/tauri.linux.json
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: "AntonAI ${{ env.RELEASE_TAG }}"
           releaseDraft: true
           prerelease: false
+
+      - name: Ensure release exists (manual runs)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${RELEASE_TAG}" || gh release create "${RELEASE_TAG}" --draft -t "AntonAI ${RELEASE_TAG}"
 
       - name: Make stable-named AppImage copy
         run: |
@@ -81,6 +98,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ github.ref_name }}" \
+          gh release upload "${RELEASE_TAG}" \
             src-tauri/target/release/bundle/appimage/antonai-linux-x86_64.AppImage \
             --clobber
