@@ -9,39 +9,56 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: setup node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: install dependencies (ubuntu only)
+      - name: Install Linux deps (Tauri v2)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libwebkit2gtk-4.0-dev \
             libwebkit2gtk-4.1-dev \
             libappindicator3-dev \
             librsvg2-dev \
             patchelf
-          # webkitgtk 4.1 is for Tauri v2; 4.0 is for Tauri v1.
 
-      - name: install frontend dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build Python sidecar
+        working-directory: src-python
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt || true
+          # Ensure PyInstaller is available if not in requirements.txt
+          python -m pip install pyinstaller
+          pyinstaller --onefile app/main.py
+          mkdir -p ../src-tauri/binaries
+          cp dist/main ../src-tauri/binaries/main
+        shell: bash
+
+      - name: Rename sidecar with target triple
+        working-directory: src-tauri
+        run: |
+          node ../scripts/rename-sidecar.js
+          chmod +x binaries/*
+
+      - name: Install frontend deps
         run: npm ci
 
-      - name: build and publish
+      - name: Build and publish
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__
-          releaseName: "App v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
+          # Use npx to avoid relying on a package.json script if you prefer:
+          tauriScript: npx tauri
           releaseDraft: true
           prerelease: false
