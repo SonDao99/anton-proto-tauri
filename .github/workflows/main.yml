@@ -1,5 +1,6 @@
 name: release-linux
 on:
+  workflow_dispatch:
   push:
     branches: [ release ]
 
