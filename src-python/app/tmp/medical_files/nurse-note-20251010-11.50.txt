@@ -1,0 +1,18 @@
+Nursing Note (Day 1 AM)
+Document Type: Nursing Progress Note
+Document Date: 10 Oct, 2025, 11:50 AEDT
+Document Status: Auth (Verified)
+Document Title/Subject: Nursing Progress Note
+Performed By/Author: Doe, Jane on 10 Oct, 2025 11:55 AEDT
+Verified By/Author: Doe, Jane on 10 Oct, 2025 11:55 AEDT
+Visit info: 2123123, TEST HOSPITAL, Inpatient, 18/09/2025 - 11/10/2025
+
+*FINAL REPORT*
+
+Cognition – Alert, orientated, GCS 15
+Vitals – Within normal limits
+Diet – Tolerating well food and fluids 
+Renal/GIT - Continent. Bowels not opened this shift. Refusing laxatives.
+Skin Integrity – Skin dry and intact
+Ambulation – Showered in the AM, uses Sarasteady for transfers. Attended physio this morning.
+Medications – All medications given as per EMR

@@ -8,11 +8,12 @@ function prefersDark(): boolean {
 }
 
 export function getTheme(): Theme {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw === 'light' || raw === 'dark') return raw
-  } catch {}
-  return prefersDark() ? 'dark' : 'light'
+  // try {
+  //   const raw = localStorage.getItem(STORAGE_KEY)
+  //   if (raw === 'light' || raw === 'dark') return raw
+  // } catch {}
+  // return prefersDark() ? 'dark' : 'light'
+  return 'light'
 }
 
 function applyTheme(theme: Theme) {

@@ -1,0 +1,24 @@
+Nursing Note (Day 1 PM)
+Document Type: Nursing Progress Note
+Document Date: 10 Oct, 2025, 19:43 AEDT
+Document Status: Auth (Verified)
+Document Title/Subject: Nursing Progress Note
+Performed By/Author: Doe, Jane on 10 Oct, 2025 19:45 AEDT
+Verified By/Author: Doe, Jane on 10 Oct, 2025 19:45 AEDT
+Visit info: 2123123, TEST HOSPITAL, Inpatient, 18/09/2025 - 11/10/2025
+
+*FINAL REPORT*
+Document Contains Addenda
+Addendum by Doe, Jane on 10 Oct, 2025 20:50 (Verified)
+BGLs 14.3 after meal. Patient also refusing clexane, and TEDS stocking introduced this shift. HT to please clarify situation in morning.
+
+
+Cognition – Generally alert, but somewhat confused, GCS14, complaining of ongoing hip pain. PRN analgesia given with good effect.
+CVS – Vitals stable and within normal limits
+Resp – Sats wnl, coughing occasionally – pt says throat feels dry, no signs of respiratory distress
+Diet – QID BGLs, administered 3u sliding scale insulin pre-dinner as BGL was 17.5. 
+Renal/GIT - Bowels not opened. Tolerating diabetic diet and fluids. No nausea /vomiting. Continent of urine. Pad changed.
+Skin Integrity – Skin dry and intact – hip wound dry and intact.
+Ambulation – Uses wheelchair – sarasteady for transfers.
+Social – had visitors in the PM.
+Medications – All medications given as per EMR. Patient has taken her aperients today.
