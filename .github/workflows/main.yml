@@ -51,6 +51,8 @@ jobs:
 
       - name: Build Python sidecar (Linux)
         working-directory: src-python
+        env:
+          SKIP_APPIMAGE: 1
         run: |
           python -m pip install --upgrade pip
           # Use the repository build script which creates a PyInstaller bundle that

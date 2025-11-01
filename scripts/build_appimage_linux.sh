@@ -123,6 +123,13 @@ echo "Running PyInstaller with spec: $SPEC_FILE"
 # so we don't need --add-data here (which would conflict with the .spec file).
 pyinstaller "$SPEC_FILE" --noconfirm --clean --distpath dist --workpath build
 
+# Exit early if SKIP_APPIMAGE is set (useful for CI where only PyInstaller output is needed)
+if [ "${SKIP_APPIMAGE:-0}" = "1" ]; then
+  echo "PyInstaller build complete. Skipping AppImage creation (SKIP_APPIMAGE=1)."
+  echo "PyInstaller output available at: dist/antonai/antonai"
+  exit 0
+fi
+
 # Prepare AppDir
 APPDIR="AppDir"
 rm -rf "$APPDIR" dist/antonai.AppImage
