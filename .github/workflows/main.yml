@@ -54,7 +54,7 @@ jobs:
           python -m pip install --upgrade pip
           # Use the repository build script which creates a PyInstaller bundle that
           # collects the entire `app` package (including `services`) into the bundle.
-          ../scripts/build_appimage_linux.sh
+          bash ../scripts/build_appimage_linux.sh
           mkdir -p ../src-tauri/binaries
           # The build script produces a folder dist/antonai with the bundled binary at dist/antonai/antonai
           cp dist/antonai/antonai ../src-tauri/binaries/main
