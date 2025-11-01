@@ -46,17 +46,19 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Build Python sidecar (Linux)
         working-directory: src-python
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt || true
-          python -m pip install pyinstaller
-          pyinstaller --onefile app/main.py
+          # Use the repository build script which creates a PyInstaller bundle that
+          # collects the entire `app` package (including `services`) into the bundle.
+          ../scripts/build_appimage_linux.sh
           mkdir -p ../src-tauri/binaries
-          cp dist/main ../src-tauri/binaries/main
+          # The build script produces a folder dist/antonai with the bundled binary at dist/antonai/antonai
+          cp dist/antonai/antonai ../src-tauri/binaries/main
+          chmod +x ../src-tauri/binaries/main
 
       - name: Finalize sidecar binary (rename + env)
         env:
