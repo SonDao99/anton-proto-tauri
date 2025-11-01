@@ -18,12 +18,24 @@ import re
 from textwrap import dedent
 import logging
 
-# Add the app directory to sys.path so relative imports work in PyInstaller
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Ensure the app package is importable in both development and when frozen by PyInstaller.
+# In a PyInstaller onefile binary, files are unpacked to sys._MEIPASS; add that path
+# (or the executable directory) so imports like `from services...` still resolve.
+if getattr(sys, "frozen", False):
+    # If PyInstaller set _MEIPASS, prefer the unpacked bundle location.
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        app_meipass = Path(meipass) / "app"
+        sys.path.insert(0, str(app_meipass))
+    # Also add the directory containing the frozen executable as a fallback.
+    sys.path.insert(0, str(Path(sys.executable).resolve().parent))
+else:
+    # Normal (source) execution: add the app directory (src-python/app) so relative imports work.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from services.llm.open_router_client import OpenRouterClient
 from agents.medical_agent import MedicalAgent
-from services.note_formatters import NoteFormatterFactory
+from services.note_formatters.NoteFormatterFactory import NoteFormatterFactory
 from services.citations.citation_extractor import CitationExtractor
 from models.note_types import NoteType
 from services.streams.connection_manager import ConnectionManager
@@ -38,7 +50,9 @@ else:
     # Default: check home directory first (Ubuntu packaging), then local
     home_medical_dir = Path.home() / "tmp" / "medical-files"
     local_medical_dir = BASE_DIR / "tmp" / "medical_files"
-    MEDICAL_FILES_DIR = home_medical_dir if home_medical_dir.exists() else local_medical_dir
+    MEDICAL_FILES_DIR = (
+        home_medical_dir if home_medical_dir.exists() else local_medical_dir
+    )
 
 
 def load_environment():
@@ -92,6 +106,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Simple health endpoint so the frontend can poll for readiness before opening a WebSocket.
 # Frontend should poll GET /health and wait for a 200 { "status": "ok" } response.
 @app.get("/health")
@@ -101,15 +116,18 @@ async def health():
     """
     return {"status": "ok"}
 
+
 # Initialize shared components
 llm_client = OpenRouterClient()
 medical_agent = MedicalAgent()
 citation_extractor = CitationExtractor()
 
+
 class TriggerStreamRequest(BaseModel):
     threadId: str
     docType: str = "ward_round"
     noteOptions: dict = {}
+
 
 PATCH_RE = re.compile(r"<PATCH>\s*``````\s*</PATCH>", re.IGNORECASE)
 MARKDOWN_RE = re.compile(r"<MARKDOWN>\s*``````\s*</MARKDOWN>", re.IGNORECASE)
@@ -161,36 +179,39 @@ async def stream_note_to_ws(thread_id: str, doc_type: str, note_options: dict):
         config = {"temperature": 0.3, "model": os.getenv("OPENROUTER_MODEL")}
         for delta in llm_client.stream_chat(messages, config):
             accumulated += delta
-            await websocket.send_text(
-                json.dumps({"type": "chunk", "content": delta})
-            )
+            await websocket.send_text(json.dumps({"type": "chunk", "content": delta}))
 
         # Extract citation data (no HTML conversion)
         citation_map = citation_extractor.extract_citations(
-            accumulated,
-            medical_content
+            accumulated, medical_content
         )
 
         # Send structured data to frontend
-        await websocket.send_text(json.dumps({
-            "type": "note_complete",
-            "data": {
-                "markdown": accumulated,
-                "citations": {
-                    str(num): {
-                        "id": cite.id,
-                        "number": cite.number,
-                        "filename": cite.filename,
-                        "section": cite.section,
-                        "timestamp": cite.timestamp.isoformat() if cite.timestamp else None,
-                        "content": cite.content,
-                        "context": cite.context
-                    }
-                    for num, cite in citation_map.citations.items()
-                },
-                "citation_count": citation_map.total_count
-            }
-        }))
+        await websocket.send_text(
+            json.dumps(
+                {
+                    "type": "note_complete",
+                    "data": {
+                        "markdown": accumulated,
+                        "citations": {
+                            str(num): {
+                                "id": cite.id,
+                                "number": cite.number,
+                                "filename": cite.filename,
+                                "section": cite.section,
+                                "timestamp": cite.timestamp.isoformat()
+                                if cite.timestamp
+                                else None,
+                                "content": cite.content,
+                                "context": cite.context,
+                            }
+                            for num, cite in citation_map.citations.items()
+                        },
+                        "citation_count": citation_map.total_count,
+                    },
+                }
+            )
+        )
 
         logger.info(f"Sent note_complete with {citation_map.total_count} citations")
         await websocket.send_text(json.dumps({"type": "done"}))
@@ -202,11 +223,14 @@ async def stream_note_to_ws(thread_id: str, doc_type: str, note_options: dict):
         except Exception:
             pass
 
+
 @app.post("/api/notes/trigger-stream", status_code=status.HTTP_202_ACCEPTED)
 async def trigger_stream(req: TriggerStreamRequest):
     ws = await manager.get_socket(req.threadId)
     if not ws:
-        raise HTTPException(status_code=404, detail="WebSocket not connected for threadId")
+        raise HTTPException(
+            status_code=404, detail="WebSocket not connected for threadId"
+        )
     # Launch streaming task tied to this threadId
     await manager.start_stream_task(
         req.threadId,
@@ -214,7 +238,9 @@ async def trigger_stream(req: TriggerStreamRequest):
     )
     return {"status": "started", "threadId": req.threadId}
 
+
 manager = ConnectionManager()
+
 
 @app.websocket("/ws/medical-note/{thread_id}")
 async def medical_note_ws(websocket: WebSocket, thread_id: str):
@@ -235,4 +261,5 @@ if __name__ == "__main__":
     print(f"PORT:{port}", flush=True)  # To inform Tauri of the port
     sys.stdout.flush()
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=port)
