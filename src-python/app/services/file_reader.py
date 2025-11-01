@@ -2,11 +2,11 @@ from pathlib import Path
 import os
 
 class FileReader:
-    # Use /srv/medical_files as the shared-folder default for Ubuntu testing
-    DEFAULT_DIR = Path("/srv/medical_files")
+    # Default to ~/tmp/medical-files on Ubuntu, fallback to /srv/medical_files
+    DEFAULT_DIR = Path.home() / "tmp" / "medical-files"
 
     def __init__(self, directory: str | None = None):
-        # Hard-coded default for quick testing; pass directory to override
+        # Use provided directory, or fall back to default
         if directory:
             self.directory = Path(directory).expanduser().resolve()
         else:

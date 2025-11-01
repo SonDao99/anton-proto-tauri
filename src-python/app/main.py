@@ -11,18 +11,22 @@ import sys
 from queue import Queue
 import threading
 import asyncio
+from pathlib import Path
+from urllib.parse import urlparse, parse_qs
+from pydantic import BaseModel
+import re
+from textwrap import dedent
+import logging
+
+# Add the app directory to sys.path so relative imports work in PyInstaller
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from services.llm.open_router_client import OpenRouterClient
 from agents.medical_agent import MedicalAgent
 from services.note_formatters import NoteFormatterFactory
 from services.citations.citation_extractor import CitationExtractor
 from models.note_types import NoteType
-from urllib.parse import urlparse, parse_qs
-from pathlib import Path
 from services.streams.connection_manager import ConnectionManager
-from pydantic import BaseModel
-import re
-from textwrap import dedent
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -7,11 +7,17 @@ from .model_client import ModelClient, ChatMessage, ModelCallConfig
 
 class OpenRouterClient(ModelClient):
     def __init__(self, default_model: Optional[str] = None, temperature: float = 0.3):
+        api_key = os.getenv('OPENROUTER_API_KEY')
+        if not api_key:
+            raise ValueError(
+                "OPENROUTER_API_KEY environment variable is not set. "
+                "Please set it before starting the sidecar."
+            )
         self.model_name = default_model or os.getenv('OPENROUTER_MODEL', 'meta-llama/llama-3.1-8b-instruct:free')
         self.llm = ChatOpenAI(
             model=self.model_name,
             base_url='https://openrouter.ai/api/v1',
-            api_key=os.getenv('OPENROUTER_API_KEY'),
+            api_key=api_key,
             temperature=temperature,
             streaming=True,
         )
