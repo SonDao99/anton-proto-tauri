@@ -62,15 +62,25 @@ def load_environment():
 
     Priority order (first match wins, override=False to respect existing vars):
       1. Directory of the frozen executable (when running the packaged sidecar)
-      2. The source code directory (BASE_DIR)
-      3. Current working directory
+      2. Tauri resource directory (for AppImage/bundled apps)
+      3. The source code directory (BASE_DIR)
+      4. Current working directory
     """
     candidates = []
 
     # When running inside the PyInstaller onefile binary.
     if getattr(sys, "frozen", False):
         executable_dir = Path(sys.executable).resolve().parent
+        print(f"[ENV DEBUG] Frozen executable detected at: {sys.executable}")
+        print(f"[ENV DEBUG] Executable directory: {executable_dir}")
         candidates.append(executable_dir / ".env")
+
+        # For Tauri AppImage on Linux, resources are in a parallel directory
+        # Check common Tauri resource locations
+        candidates.append(executable_dir.parent / "resources" / ".env")
+        candidates.append(executable_dir / "resources" / ".env")
+    else:
+        print(f"[ENV DEBUG] Running from source")
 
     # Source tree (useful for local dev / tests).
     candidates.append(BASE_DIR / ".env")
@@ -78,13 +88,29 @@ def load_environment():
     # Last fallback: current working directory.
     candidates.append(Path.cwd() / ".env")
 
-    for candidate in candidates:
+    print(f"[ENV DEBUG] Searching for .env in {len(candidates)} locations:")
+    loaded = False
+    for i, candidate in enumerate(candidates, 1):
         try:
-            if candidate and candidate.exists():
+            exists = candidate and candidate.exists()
+            print(
+                f"[ENV DEBUG] {i}. {candidate} - {'EXISTS' if exists else 'NOT FOUND'}"
+            )
+            if exists:
                 load_dotenv(candidate, override=False)
+                print(f"[ENV DEBUG] ✓ Successfully loaded environment from {candidate}")
+                logger.info(f"Loaded environment from {candidate}")
+                loaded = True
                 break
         except Exception as exc:
+            print(f"[ENV DEBUG] ✗ Failed loading .env from {candidate}: {exc}")
             logger.warning(f"Failed loading .env from {candidate}: {exc}")
+
+    if not loaded:
+        print(f"[ENV DEBUG] WARNING: No .env file found in any location!")
+        print(
+            f"[ENV DEBUG] OPENROUTER_API_KEY env var: {'SET' if os.getenv('OPENROUTER_API_KEY') else 'NOT SET'}"
+        )
 
 
 load_environment()

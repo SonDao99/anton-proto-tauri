@@ -31,8 +31,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/main"
-    ]
+    "resources": ["binaries/.env"],
+    "externalBin": ["binaries/main"]
   }
 }
