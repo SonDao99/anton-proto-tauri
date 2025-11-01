@@ -58,12 +58,11 @@ jobs:
           mkdir -p ../src-tauri/binaries
           cp dist/main ../src-tauri/binaries/main
 
-      - name: Rename sidecar with target triple
-        working-directory: src-tauri
-        run: |
-          triple="$(rustc -Vv | grep host | awk '{print $2}')"
-          mv "binaries/main" "binaries/main-${triple}"
-          chmod +x "binaries/main-${triple}"
+      - name: Finalize sidecar binary (rename + env)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+        run: node scripts/rename-sidecar.js
 
       # Override beforeBuildCommand to skip TS checks in CI (Vite only)
       - name: Create Tauri Linux config overlay

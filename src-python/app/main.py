@@ -29,7 +29,40 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).resolve().parent  # e.g., src-python/app
 MEDICAL_FILES_DIR = (BASE_DIR / "tmp" / "medical_files").resolve()
 
-load_dotenv()
+
+def load_environment():
+    """
+    Load environment variables from sensible locations for both
+    development (source checkout) and the packaged PyInstaller binary.
+
+    Priority order (first match wins, override=False to respect existing vars):
+      1. Directory of the frozen executable (when running the packaged sidecar)
+      2. The source code directory (BASE_DIR)
+      3. Current working directory
+    """
+    candidates = []
+
+    # When running inside the PyInstaller onefile binary.
+    if getattr(sys, "frozen", False):
+        executable_dir = Path(sys.executable).resolve().parent
+        candidates.append(executable_dir / ".env")
+
+    # Source tree (useful for local dev / tests).
+    candidates.append(BASE_DIR / ".env")
+
+    # Last fallback: current working directory.
+    candidates.append(Path.cwd() / ".env")
+
+    for candidate in candidates:
+        try:
+            if candidate and candidate.exists():
+                load_dotenv(candidate, override=False)
+                break
+        except Exception as exc:
+            logger.warning(f"Failed loading .env from {candidate}: {exc}")
+
+
+load_environment()
 
 app = FastAPI()
 

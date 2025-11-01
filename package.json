@@ -11,7 +11,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "build:sidecar": "cd src-python && .\\.venv\\Scripts\\pyinstaller.exe --onefile app/main.py && copy dist\\main.exe ..\\src-tauri\\binaries\\main.exe && cd ..\\src-tauri && node ../scripts/rename-sidecar.js"
+    "build:sidecar": "cd src-python && .\\.venv\\Scripts\\pyinstaller.exe --onefile app/main.py && copy dist\\main.exe ..\\src-tauri\\binaries\\main.exe && cd ..\\src-tauri && node ../scripts/rename-sidecar.js",
+    "build:sidecar:linux": "cd src-python && python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt && pip install pyinstaller && pyinstaller --onefile app/main.py && mkdir -p ../src-tauri/binaries && cp dist/main ../src-tauri/binaries/main && chmod +x ../src-tauri/binaries/main && cd ../src-tauri && node ../scripts/rename-sidecar.js"
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.28",
