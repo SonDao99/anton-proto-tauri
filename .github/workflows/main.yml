@@ -67,6 +67,20 @@ jobs:
           OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
         run: node scripts/rename-sidecar.js
 
+      - name: Verify .env file was created
+        run: |
+          echo "Checking for .env file in src-tauri/binaries/..."
+          if [ -f "src-tauri/binaries/.env" ]; then
+            echo "✓ .env file exists"
+            echo "Contents (secrets masked):"
+            cat src-tauri/binaries/.env | sed 's/=.*/=***MASKED***/'
+          else
+            echo "✗ ERROR: .env file NOT found!"
+            echo "Listing src-tauri/binaries/:"
+            ls -la src-tauri/binaries/
+            exit 1
+          fi
+
       # Override beforeBuildCommand to skip TS checks in CI (Vite only)
       - name: Create Tauri Linux config overlay
         run: |
@@ -76,6 +90,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
         with:
           tauriScript: npx tauri
           args: --config src-tauri/tauri.linux.json

@@ -1,6 +1,6 @@
-use std::process::{Command, Child};
-use std::sync::Mutex;
 use std::path::PathBuf;
+use std::process::{Child, Command};
+use std::sync::Mutex;
 
 // Global state to track the sidecar process
 static SIDECAR_PROCESS: Mutex<Option<Child>> = Mutex::new(None);
@@ -30,8 +30,21 @@ fn start_sidecar() -> Result<(), String> {
         return Err(format!("Sidecar binary not found at {:?}", sidecar_path));
     }
 
-    // Spawn the sidecar process
-    let child = Command::new(&sidecar_path)
+    // Spawn the sidecar process with environment variables
+    // These are embedded at compile time from GitHub secrets in CI
+    let mut cmd = Command::new(&sidecar_path);
+
+    // Pass OPENROUTER_API_KEY if it was set at build time
+    if let Some(api_key) = option_env!("OPENROUTER_API_KEY") {
+        cmd.env("OPENROUTER_API_KEY", api_key);
+    }
+
+    // Pass OPENROUTER_MODEL if it was set at build time
+    if let Some(model) = option_env!("OPENROUTER_MODEL") {
+        cmd.env("OPENROUTER_MODEL", model);
+    }
+
+    let child = cmd
         .spawn()
         .map_err(|e| format!("Failed to start sidecar: {}", e))?;
 
