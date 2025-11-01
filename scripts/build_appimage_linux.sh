@@ -148,7 +148,9 @@ fi
 APPIMAGETOOL="./appimagetool-x86_64.AppImage"
 if [ ! -f "$APPIMAGETOOL" ]; then
   echo "Downloading appimagetool (this is ~10-20MB)"
-  wget -q -O "$APPIMAGETOOL" "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage"
+  wget -O "$APPIMAGETOOL" "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage" || \
+    curl -L -o "$APPIMAGETOOL" "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage" || \
+    (echo "Failed to download appimagetool"; exit 1)
   chmod +x "$APPIMAGETOOL"
 fi
 
