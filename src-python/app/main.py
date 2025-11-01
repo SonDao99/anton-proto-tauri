@@ -27,7 +27,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent  # e.g., src-python/app
-MEDICAL_FILES_DIR = (BASE_DIR / "tmp" / "medical_files").resolve()
+# Use ~/tmp/medical-files on Ubuntu/Linux, fallback to local tmp for dev
+if os.getenv("MEDICAL_FILES_DIR"):
+    MEDICAL_FILES_DIR = Path(os.getenv("MEDICAL_FILES_DIR")).expanduser().resolve()
+else:
+    # Default: check home directory first (Ubuntu packaging), then local
+    home_medical_dir = Path.home() / "tmp" / "medical-files"
+    local_medical_dir = BASE_DIR / "tmp" / "medical_files"
+    MEDICAL_FILES_DIR = home_medical_dir if home_medical_dir.exists() else local_medical_dir
 
 
 def load_environment():
