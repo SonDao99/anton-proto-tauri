@@ -27,6 +27,7 @@ src-tauri/binaries/
 
 # Python
 *.spec
+!src-python/main.spec
 __pycache__/
 *.pyc
 *.pyo
