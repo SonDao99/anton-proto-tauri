@@ -45,7 +45,7 @@ pip install --upgrade pip wheel
 # or if FORCE_REINSTALL=1 is set in the environment.
 if [ "${FORCE_REINSTALL:-0}" = "1" ] || [ ! -x "$PY_VENV/bin/pyinstaller" ]; then
   echo "Installing Python requirements and PyInstaller into venv..."
-  pip install --upgrade -r src-python/requirements.txt pyinstaller==5.11.0
+  pip install --upgrade -r src-python/requirements.txt pyinstaller==6.15.0
 else
   echo "PyInstaller already present in venv; skipping pip install. Set FORCE_REINSTALL=1 to force reinstall."
 fi

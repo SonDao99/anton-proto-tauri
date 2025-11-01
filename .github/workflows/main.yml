@@ -53,7 +53,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # Install dependencies and PyInstaller
-          pip install -r requirements.txt pyinstaller==5.11.0
+          pip install -r requirements.txt pyinstaller==6.15.0
           # Build with main.spec which creates a single-file executable with all dependencies
           pyinstaller main.spec --noconfirm --clean
           # Copy the single-file executable to Tauri binaries directory
